@@ -28,13 +28,35 @@
         /// </summary>
         private void InitializeComponent()
         {
-            this.components = new System.ComponentModel.Container();
+            this.boardDisp = new System.Windows.Forms.PictureBox();
+            ((System.ComponentModel.ISupportInitialize)(this.boardDisp)).BeginInit();
+            this.SuspendLayout();
+            // 
+            // boardDisp
+            // 
+            this.boardDisp.Location = new System.Drawing.Point(12, 12);
+            this.boardDisp.Name = "boardDisp";
+            this.boardDisp.Size = new System.Drawing.Size(800, 800);
+            this.boardDisp.TabIndex = 0;
+            this.boardDisp.TabStop = false;
+            this.boardDisp.Paint += new System.Windows.Forms.PaintEventHandler(this.BoardPaint);
+            // 
+            // Form1
+            // 
+            this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(800, 450);
+            this.ClientSize = new System.Drawing.Size(828, 820);
+            this.Controls.Add(this.boardDisp);
+            this.Name = "Form1";
             this.Text = "Form1";
+            ((System.ComponentModel.ISupportInitialize)(this.boardDisp)).EndInit();
+            this.ResumeLayout(false);
+
         }
 
         #endregion
+
+        private System.Windows.Forms.PictureBox boardDisp;
     }
 }
 
