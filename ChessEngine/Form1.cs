@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
 using System.Drawing;
+using System.Drawing.Drawing2D;
+using System.Drawing.Imaging;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -12,35 +14,149 @@ namespace ChessEngine
 {
     public partial class Form1 : Form
     {
-        // Nombre de cellule pour un coté du plateau
-        private int numOfCells = 8;
-        // Taille des cellules (en px)
-        private int cellSize = 100;
-
         private Board board;
         private bool boardIsInit;
 
+        Size boardSize;
+        int nbBoxEdge;
+        int boxSize;
+
+        Color lightColor;
+        Color darkColor;
+
+        private Dictionary<PieceEnum, Bitmap> piecesImage;
         public Form1()
         {
             InitializeComponent();
 
             board = new Board();
             boardIsInit = false;
+
+            char[,] boardTab = board.GetBoardTab();
+
+            boardSize = boardDisp.Size;
+            nbBoxEdge = (int)Math.Sqrt(boardTab.Length);
+            boxSize = boardSize.Width / nbBoxEdge;
+
+            piecesImage = new Dictionary<PieceEnum, Bitmap>(); 
+
+            lightColor = Color.FromArgb(238, 238, 210);
+            darkColor = Color.FromArgb(118, 150, 86);
+
+            Bitmap sprite = new Bitmap("../../pieces_sprite.png");
+            int pieceSize = sprite.Height / 2;
+            int cropx = 0;
+            int cropy = 0;
+            
+
+            foreach(PieceEnum piece in Enum.GetValues(typeof(PieceEnum)))
+            {
+                switch(piece)
+                {
+                    case PieceEnum.WhiteKing:
+                        cropx = 0 * pieceSize;
+                        cropy = 0 * pieceSize;
+                        break;
+                    case PieceEnum.WhiteQueen:
+                        cropx = 1 * pieceSize;
+                        cropy = 0 * pieceSize;
+                        break;
+                    case PieceEnum.WhiteRook:
+                        cropx = 4 * pieceSize;
+                        cropy = 0 * pieceSize;
+                        break;
+                    case PieceEnum.WhiteKnight:
+                        cropx = 3 * pieceSize;
+                        cropy = 0 * pieceSize;
+                        break;
+                    case PieceEnum.WhiteBishop:
+                        cropx = 2 * pieceSize;
+                        cropy = 0 * pieceSize;
+                        break;
+                    case PieceEnum.WhitePawn:
+                        cropx = 5 * pieceSize;
+                        cropy = 0 * pieceSize;
+                        break;
+                    case PieceEnum.BlackKing:
+                        cropx = 0 * pieceSize;
+                        cropy = 1 * pieceSize;
+                        break;
+                    case PieceEnum.BlackQueen:
+                        cropx = 1 * pieceSize;
+                        cropy = 1 * pieceSize;
+                        break;
+                    case PieceEnum.BlackRook:
+                        cropx = 4 * pieceSize;
+                        cropy = 1 * pieceSize;
+                        break;
+                    case PieceEnum.BlackKnight:
+                        cropx = 3 * pieceSize;
+                        cropy = 1 * pieceSize;
+                        break;
+                    case PieceEnum.BlackBishop:
+                        cropx = 2 * pieceSize;
+                        cropy = 1 * pieceSize;
+                        break;
+                    case PieceEnum.BlackPawn:
+                        cropx = 5 * pieceSize;
+                        cropy = 1 * pieceSize;
+                        break;
+
+                }
+
+                piecesImage.Add(piece, ResizeImage(CropImage(sprite, cropx, cropy, pieceSize, pieceSize),boxSize,boxSize));
+            }     
+        }
+
+        private Bitmap CropImage(Bitmap src, int newx, int newy, int width, int height)
+        {
+            Rectangle cropRect = new Rectangle(newx, newy, width, height);
+
+            Bitmap target = new Bitmap(cropRect.Width, cropRect.Height);
+
+            using (Graphics g = Graphics.FromImage(target))
+            {
+                g.DrawImage(src, new Rectangle(0, 0, target.Width, target.Height),
+                                 cropRect,
+                                 GraphicsUnit.Pixel);
+            }
+
+            return target;
+        }
+
+        public static Bitmap ResizeImage(Image image, int width, int height)
+        {
+            var destRect = new Rectangle(0, 0, width, height);
+            var destImage = new Bitmap(width, height);
+
+            destImage.SetResolution(image.HorizontalResolution, image.VerticalResolution);
+
+            using (var graphics = Graphics.FromImage(destImage))
+            {
+                graphics.CompositingMode = CompositingMode.SourceCopy;
+                graphics.CompositingQuality = CompositingQuality.HighQuality;
+                graphics.InterpolationMode = InterpolationMode.HighQualityBicubic;
+                graphics.SmoothingMode = SmoothingMode.HighQuality;
+                graphics.PixelOffsetMode = PixelOffsetMode.HighQuality;
+
+                using (var wrapMode = new ImageAttributes())
+                {
+                    wrapMode.SetWrapMode(WrapMode.TileFlipXY);
+                    graphics.DrawImage(image, destRect, 0, 0, image.Width, image.Height, GraphicsUnit.Pixel, wrapMode);
+                }
+            }
+
+            return destImage;
         }
 
         private void BoardPaint(object sender, PaintEventArgs e)
         {
             char[,] boardTab = board.GetBoardTab();
 
+            Graphics g = e.Graphics;
+
             if (!boardIsInit)
             {
-                Size boardSize = boardDisp.Size;
-                int nbBoxEdge = (int)Math.Sqrt(boardTab.Length);
-                int boxSize = boardSize.Width / nbBoxEdge;
-
-                Color lightColor = Color.FromArgb(238, 238, 210);
-                Color darkColor = Color.FromArgb(118, 150, 86);
-
                 SolidBrush brush = new SolidBrush(lightColor);
 
                 for (int i=0; i<nbBoxEdge; i++)
@@ -58,11 +174,25 @@ namespace ChessEngine
 
                         Rectangle rect = new Rectangle(i*boxSize, j*boxSize, boxSize, boxSize);
 
-                        e.Graphics.FillRectangle(brush, rect);
+                        g.FillRectangle(brush, rect);
                     }
                 }
 
                 boardIsInit = true;
+            }
+
+            RectangleF srcRect = new RectangleF(0, 0, boxSize, boxSize);
+            GraphicsUnit units = GraphicsUnit.Pixel;
+
+            for (int i = 0; i < nbBoxEdge; i++)
+            {
+                for (int j = 0; j < nbBoxEdge; j++)
+                {
+                    if(boardTab[i,j] != ' ')
+                    {
+                        g.DrawImage(piecesImage[(PieceEnum) boardTab[i,j]], j * boxSize, i * boxSize, srcRect, units);
+                    }
+                }
             }
         }
     }
