@@ -195,5 +195,16 @@ namespace ChessEngine
                 }
             }
         }
+
+        private void BoardClick(object sender, EventArgs e)
+        {
+            MouseEventArgs mouseEvent = (MouseEventArgs)e;
+
+            int posi = (int)Math.Floor((double) mouseEvent.Y / boxSize);
+            int posj = (int)Math.Floor((double) mouseEvent.X / boxSize);
+
+            MessageBox.Show(string.Format("i: {0} j: {1}", posi, posj));
+
+        }
     }
 }

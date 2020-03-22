@@ -40,6 +40,7 @@
             this.boardDisp.Size = new System.Drawing.Size(800, 800);
             this.boardDisp.TabIndex = 0;
             this.boardDisp.TabStop = false;
+            this.boardDisp.Click += new System.EventHandler(this.BoardClick);
             this.boardDisp.Paint += new System.Windows.Forms.PaintEventHandler(this.BoardPaint);
             // 
             // Form1
