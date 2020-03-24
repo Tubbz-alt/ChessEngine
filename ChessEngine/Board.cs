@@ -49,6 +49,8 @@ namespace ChessEngine
 
         private void InitPiece()
         {
+            listPieces = new List<Piece>();
+            
             int len = (int)Math.Sqrt(boardTab.Length);
 
             for (int i = 0; i < len; i++)
@@ -118,6 +120,26 @@ namespace ChessEngine
             }
 
             return possibleMove;
+        }
+
+        public void SetPieceCoord(string pieceCoord, string newCoord)
+        {
+            foreach (Piece piece in listPieces)
+            {
+                if (piece.GetPos() == pieceCoord)
+                {
+                    piece.SetPos(newCoord);
+
+                    List<int> oldPos = Globals.CoordToIj(pieceCoord);
+                    List<int> newPos = Globals.CoordToIj(newCoord);
+
+                    char pieceLetter = boardTab[oldPos[0], oldPos[1]];
+                    boardTab[oldPos[0], oldPos[1]] = ' ';
+                    boardTab[newPos[0], newPos[1]] = pieceLetter;
+
+                    break;
+                }
+            }
         }
     }
 }

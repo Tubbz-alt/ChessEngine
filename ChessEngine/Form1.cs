@@ -15,24 +15,30 @@ namespace ChessEngine
     public partial class Form1 : Form
     {
         private Board board;
-        private bool boardIsInit;
 
-        Size boardSize;
-        int nbBoxEdge;
-        int boxSize;
+        private Size boardSize;
+        private int nbBoxEdge;
+        private int boxSize;
 
-        Color lightColor;
-        Color darkColor;
+        private Color lightColor;
+        private Color darkColor;
+
+        private List<string> movesToDisp;
 
         private Dictionary<PieceEnum, Bitmap> piecesImage;
+
+        private string pieceCoord;
+        private string moveCoord;
+
         public Form1()
         {
             InitializeComponent();
 
             board = new Board();
-            boardIsInit = false;
 
             char[,] boardTab = board.GetBoardTab();
+
+            movesToDisp = new List<string>();
 
             boardSize = boardDisp.Size;
             nbBoxEdge = (int)Math.Sqrt(boardTab.Length);
@@ -149,39 +155,79 @@ namespace ChessEngine
             return destImage;
         }
 
+        private void BoardClick(object sender, EventArgs e)
+        {
+            MouseEventArgs mouseEvent = (MouseEventArgs)e;
+
+            int posi = (int)Math.Floor((double)mouseEvent.Y / boxSize);
+            int posj = (int)Math.Floor((double)mouseEvent.X / boxSize);
+
+            if (movesToDisp.Count == 0)
+            {
+                pieceCoord = Globals.coordTab[posi, posj];
+
+                movesToDisp = board.GetMove(pieceCoord);
+
+                Refresh();
+            }
+            else
+            {
+                moveCoord = Globals.coordTab[posi, posj];
+
+                if (movesToDisp.FindIndex(Globals.coordTab[posi,posj].Contains) >= 0)
+                {
+                    board.SetPieceCoord(pieceCoord, moveCoord);
+                }
+
+                movesToDisp.Clear();
+
+                Refresh();
+            }
+            
+        }
+
         private void BoardPaint(object sender, PaintEventArgs e)
         {
             char[,] boardTab = board.GetBoardTab();
 
             Graphics g = e.Graphics;
+           
+            SolidBrush brush = new SolidBrush(lightColor);
 
-            if (!boardIsInit)
+            for (int i=0; i<nbBoxEdge; i++)
             {
-                SolidBrush brush = new SolidBrush(lightColor);
-
-                for (int i=0; i<nbBoxEdge; i++)
+                for(int j=0; j<nbBoxEdge; j++)
                 {
-                    for(int j=0; j<nbBoxEdge; j++)
+                    if((i%2 == 0 && j%2 == 0) || (i%2 != 0 && j%2 != 0))
                     {
-                        if((i%2 == 0 && j%2 == 0) || (i%2 != 0 && j%2 != 0))
-                        {
-                            brush.Color = lightColor;
-                        }
-                        else
-                        {
-                            brush.Color = darkColor;
-                        }
-
-                        Rectangle rect = new Rectangle(i*boxSize, j*boxSize, boxSize, boxSize);
-
-                        g.FillRectangle(brush, rect);
+                        brush.Color = lightColor;
                     }
-                }
+                    else
+                    {
+                        brush.Color = darkColor;
+                    }
 
-                boardIsInit = true;
+                    Rectangle rect = new Rectangle(i*boxSize, j*boxSize, boxSize, boxSize);
+
+                    g.FillRectangle(brush, rect);
+                }
+            }
+            
+
+            SolidBrush brushCircle = new SolidBrush(Color.Gray);
+
+            int radius = boxSize/2;
+
+            foreach (string move in movesToDisp)
+            {
+                List<int> coordIj = Globals.CoordToIj(move);
+
+                Rectangle moveRect = new Rectangle(coordIj[1] * boxSize + radius/2, coordIj[0] * boxSize + radius/2, radius, radius);
+
+                g.FillEllipse(brushCircle, moveRect);
             }
 
-            RectangleF srcRect = new RectangleF(0, 0, boxSize, boxSize);
+            RectangleF boxRect = new RectangleF(0, 0, boxSize, boxSize);
             GraphicsUnit units = GraphicsUnit.Pixel;
 
             for (int i = 0; i < nbBoxEdge; i++)
@@ -190,21 +236,10 @@ namespace ChessEngine
                 {
                     if(boardTab[i,j] != ' ')
                     {
-                        g.DrawImage(piecesImage[(PieceEnum) boardTab[i,j]], j * boxSize, i * boxSize, srcRect, units);
+                        g.DrawImage(piecesImage[(PieceEnum) boardTab[i,j]], j * boxSize, i * boxSize, boxRect, units);
                     }
                 }
             }
-        }
-
-        private void BoardClick(object sender, EventArgs e)
-        {
-            MouseEventArgs mouseEvent = (MouseEventArgs)e;
-
-            int posi = (int)Math.Floor((double) mouseEvent.Y / boxSize);
-            int posj = (int)Math.Floor((double) mouseEvent.X / boxSize);
-
-            MessageBox.Show(string.Format("i: {0} j: {1}", posi, posj));
-
         }
     }
 }
