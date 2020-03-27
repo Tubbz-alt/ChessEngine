@@ -13,10 +13,13 @@ namespace ChessEngine
         // true=white, false=black
         protected bool color;
 
-        public Piece(string initPos, bool initColor)
+        protected Board board;
+
+        public Piece(string initPos, bool initColor, Board initBoard)
         {
             pos = initPos;
             color = initColor;
+            board = initBoard;
         }
 
         public string GetPos()
@@ -24,12 +27,17 @@ namespace ChessEngine
             return pos;
         }
 
-        public void SetPos(string newPos)
+        public virtual void SetPos(string newPos)
         {
             pos = newPos;
         }
 
-        public virtual List<string> GetPossibleMove(char[,] boardArr) 
+        public bool GetColor()
+        {
+            return color;
+        }
+
+        public virtual List<string> GetPossibleMove() 
         {
             return new List<string>();
         }

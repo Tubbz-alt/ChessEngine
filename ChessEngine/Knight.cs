@@ -8,13 +8,15 @@ namespace ChessEngine
 {
     class Knight : Piece
     {
-        public Knight(string initPos, bool initColor) : base(initPos, initColor) { }
+        public Knight(string initPos, bool initColor, Board initBoard) : base(initPos, initColor, initBoard) { }
 
-        public override List<string> GetPossibleMove(char[,] boardArr)
+        public override List<string> GetPossibleMove()
         {
+            char[,] boardArr = board.GetBoardTab();
+            
             List<string> possibleMoves = new List<string>();
 
-            List<int> ijCoord = Globals.CoordToIj(pos);
+            List<int> ijCoord = board.CoordToIj(pos);
 
             int len = (int) Math.Sqrt(boardArr.Length);
 
@@ -32,8 +34,9 @@ namespace ChessEngine
 
                         if (!( (elem >= 'a' && elem <= 'z' && color == false) || (elem >= 'A' && elem <= 'Z' && color == true) ))
                         {
-                            possibleMoves.Add(Globals.coordTab[i, j]);
+                            possibleMoves.Add(board.IjToCoord(i, j));
                         }
+
                     }
                 }
             }

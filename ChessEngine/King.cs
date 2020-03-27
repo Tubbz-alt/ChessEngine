@@ -8,9 +8,9 @@ namespace ChessEngine
 {
     class King : Piece
     {
-        public King(string initPos, bool initColor ) : base(initPos, initColor) { }
+        public King(string initPos, bool initColor, Board initBoard) : base(initPos, initColor, initBoard) { }
 
-        public override List<string> GetPossibleMove(char[,] boardArr)
+        public override List<string> GetPossibleMove()
         {
             return new List<string>();
         }

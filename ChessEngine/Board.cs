@@ -2,14 +2,23 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
+using System.Windows.Forms;
 
 namespace ChessEngine
 {
-    class Board
+    public class Board
     {
         private char[,] boardTab;
+        private string[,] coordTab;
         private string fen;
+
+        private Player whitePlayer;
+        private Player blackPlayer;
+
+        // true=white, false=black
+        protected bool colorTurn;
 
         private List<Piece> listPieces;
 
@@ -29,20 +38,30 @@ namespace ChessEngine
 
 
             fen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
+
+            colorTurn = true;
+
+            whitePlayer = new Human(true, this);
+            blackPlayer = new Human(false, this);
+
+            Thread interfaceThread = new Thread(new ThreadStart(StartInterface));
+            interfaceThread.Start();
+
+            StartGame();
         }
 
         private void InitCoord()
         { 
             int len = (int) Math.Sqrt(boardTab.Length);
 
-            Globals.coordTab = new string[len,len];
+            coordTab = new string[len,len];
 
             for (int i = 0; i < len; i++)
             {
                 for(int j = 0; j < len; j++)
                 {
                     char[] coord = { (char)(j + 'a'), (char)((len-i) + '0') };
-                    Globals.coordTab[i, j] = new string(coord);
+                    coordTab[i, j] = new string(coord);
                 }
             }
         }
@@ -60,43 +79,67 @@ namespace ChessEngine
                     switch ((PieceEnum) boardTab[i,j])
                     {
                         case PieceEnum.WhiteKing:
-                            listPieces.Add(new King(Globals.coordTab[i,j], true));
+                            listPieces.Add(new King(coordTab[i,j], true, this));
                             break;
                         case PieceEnum.WhiteQueen:
-                            listPieces.Add(new Queen(Globals.coordTab[i, j], true));
+                            listPieces.Add(new Queen(coordTab[i, j], true, this));
                             break;
                         case PieceEnum.WhiteRook:
-                            listPieces.Add(new Rook(Globals.coordTab[i, j], true));
+                            listPieces.Add(new Rook(coordTab[i, j], true, this));
                             break;
                         case PieceEnum.WhiteKnight:
-                            listPieces.Add(new Knight(Globals.coordTab[i, j], true));
+                            listPieces.Add(new Knight(coordTab[i, j], true, this));
                             break;
                         case PieceEnum.WhiteBishop:
-                            listPieces.Add(new Bishop(Globals.coordTab[i, j], true));
+                            listPieces.Add(new Bishop(coordTab[i, j], true, this));
                             break;
                         case PieceEnum.WhitePawn:
-                            listPieces.Add(new Pawn(Globals.coordTab[i, j], true));
+                            listPieces.Add(new Pawn(coordTab[i, j], true, this));
                             break;
                         case PieceEnum.BlackKing:
-                            listPieces.Add(new King(Globals.coordTab[i, j], false));
+                            listPieces.Add(new King(coordTab[i, j], false, this));
                             break;
                         case PieceEnum.BlackQueen:
-                            listPieces.Add(new Queen(Globals.coordTab[i, j], false));
+                            listPieces.Add(new Queen(coordTab[i, j], false, this));
                             break;
                         case PieceEnum.BlackRook:
-                            listPieces.Add(new Rook(Globals.coordTab[i, j], false));
+                            listPieces.Add(new Rook(coordTab[i, j], false, this));
                             break;
                         case PieceEnum.BlackKnight:
-                            listPieces.Add(new Knight(Globals.coordTab[i, j], false));
+                            listPieces.Add(new Knight(coordTab[i, j], false, this));
                             break;
                         case PieceEnum.BlackBishop:
-                            listPieces.Add(new Bishop(Globals.coordTab[i, j], false));
+                            listPieces.Add(new Bishop(coordTab[i, j], false, this));
                             break;
                         case PieceEnum.BlackPawn:
-                            listPieces.Add(new Pawn(Globals.coordTab[i, j], false));
+                            listPieces.Add(new Pawn(coordTab[i, j], false, this));
                             break;
 
                     }
+                }
+            }
+        }
+
+        private void StartInterface()
+        {
+            Application.EnableVisualStyles();
+            Application.SetCompatibleTextRenderingDefault(false);
+            Application.Run(new Form1(this));
+        }
+
+        private void StartGame()
+        {
+            while(true)
+            {   
+                if(colorTurn)
+                {
+                    whitePlayer.GetNextMove();
+                    colorTurn = false;
+                }
+                else
+                {
+                    blackPlayer.GetNextMove();
+                    colorTurn = true;
                 }
             }
         }
@@ -114,12 +157,49 @@ namespace ChessEngine
             {
                 if(piece.GetPos() == coord)
                 {
-                    possibleMove = piece.GetPossibleMove(boardTab);
+                    possibleMove = piece.GetPossibleMove();
                     break;
                 }
             }
 
             return possibleMove;
+        }
+
+        public List<string> GetAllMove(bool color)
+        {
+            List<string> possibleMove = new List<string>();
+
+            foreach (Piece piece in listPieces)
+            {
+                if(piece.GetColor() == color)
+                {
+                    possibleMove.AddRange(piece.GetPossibleMove());
+                }
+            }
+
+            return possibleMove;
+        }
+
+        public List<Player> GetHumanPlayer()
+        {
+            List<Player> humanPlayerList = new List<Player>();
+
+            if(whitePlayer.GetType() == typeof(Human))
+            {
+                humanPlayerList.Add(whitePlayer);
+            }
+
+            if(blackPlayer.GetType() == typeof(Human))
+            {
+                humanPlayerList.Add(blackPlayer);
+            }
+
+            return humanPlayerList;
+        }
+
+        public bool GetColorTurn()
+        {
+            return colorTurn;
         }
 
         public void SetPieceCoord(string pieceCoord, string newCoord)
@@ -130,16 +210,44 @@ namespace ChessEngine
                 {
                     piece.SetPos(newCoord);
 
-                    List<int> oldPos = Globals.CoordToIj(pieceCoord);
-                    List<int> newPos = Globals.CoordToIj(newCoord);
+                    List<int> oldPos = CoordToIj(pieceCoord);
+                    List<int> newPos = CoordToIj(newCoord);
 
                     char pieceLetter = boardTab[oldPos[0], oldPos[1]];
                     boardTab[oldPos[0], oldPos[1]] = ' ';
+
+                    if (boardTab[newPos[0], newPos[1]] != ' ')
+                    {
+                        foreach (Piece pieceToKill in listPieces)
+                        {
+                            if (pieceToKill.GetPos() == newCoord)
+                            {
+                                listPieces.Remove(pieceToKill);
+                                break;
+                            }
+                        }
+                    }
+
                     boardTab[newPos[0], newPos[1]] = pieceLetter;
 
                     break;
                 }
             }
+        }
+
+        public List<int> CoordToIj(string coord)
+        {
+            List<int> ij = new List<int>();
+
+            ij.Add(((int)Math.Sqrt(coordTab.Length) - (coord[1] - '1')) - 1);
+            ij.Add(coord[0] - 'a');
+
+            return ij;
+        }
+
+        public string IjToCoord(int i, int j)
+        {
+            return coordTab[i,j];
         }
     }
 }

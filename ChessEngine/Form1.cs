@@ -30,13 +30,17 @@ namespace ChessEngine
         private string pieceCoord;
         private string moveCoord;
 
-        public Form1()
+        private List<Player> player;
+
+        public Form1(Board initBoard)
         {
             InitializeComponent();
 
-            board = new Board();
+            board = initBoard;
 
             char[,] boardTab = board.GetBoardTab();
+
+            player = board.GetHumanPlayer();
 
             movesToDisp = new List<string>();
 
@@ -111,6 +115,7 @@ namespace ChessEngine
                 }
 
                 piecesImage.Add(piece, ResizeImage(CropImage(sprite, cropx, cropy, pieceSize, pieceSize),boxSize,boxSize));
+
             }     
         }
 
@@ -159,31 +164,44 @@ namespace ChessEngine
         {
             MouseEventArgs mouseEvent = (MouseEventArgs)e;
 
+            char[,] boardTab = board.GetBoardTab();
+
             int posi = (int)Math.Floor((double)mouseEvent.Y / boxSize);
             int posj = (int)Math.Floor((double)mouseEvent.X / boxSize);
 
-            if (movesToDisp.Count == 0)
+            bool currentColor = board.GetColorTurn();
+
+            foreach(Human human in player)
             {
-                pieceCoord = Globals.coordTab[posi, posj];
-
-                movesToDisp = board.GetMove(pieceCoord);
-
-                Refresh();
-            }
-            else
-            {
-                moveCoord = Globals.coordTab[posi, posj];
-
-                if (movesToDisp.FindIndex(Globals.coordTab[posi,posj].Contains) >= 0)
+                if(human.GetColor() == currentColor)
                 {
-                    board.SetPieceCoord(pieceCoord, moveCoord);
+                    if (movesToDisp.Count == 0)
+                    {
+                        if ((Char.IsLower(boardTab[posi, posj]) && currentColor == false) || (Char.IsUpper(boardTab[posi,posj]) && currentColor == true))
+                        {
+                            pieceCoord = board.IjToCoord(posi, posj);
+
+                            movesToDisp = board.GetMove(pieceCoord);
+
+                            Refresh();
+                        }
+                    }
+                    else
+                    {
+                        moveCoord = board.IjToCoord(posi, posj);
+
+                        if (movesToDisp.FindIndex(board.IjToCoord(posi, posj).Contains) >= 0)
+                        {
+                            board.SetPieceCoord(pieceCoord, moveCoord);
+                            human.IncrementMove();
+                        }
+
+                        movesToDisp.Clear();
+
+                        Refresh();
+                    }
                 }
-
-                movesToDisp.Clear();
-
-                Refresh();
             }
-            
         }
 
         private void BoardPaint(object sender, PaintEventArgs e)
@@ -220,7 +238,7 @@ namespace ChessEngine
 
             foreach (string move in movesToDisp)
             {
-                List<int> coordIj = Globals.CoordToIj(move);
+                List<int> coordIj = board.CoordToIj(move);
 
                 Rectangle moveRect = new Rectangle(coordIj[1] * boxSize + radius/2, coordIj[0] * boxSize + radius/2, radius, radius);
 
