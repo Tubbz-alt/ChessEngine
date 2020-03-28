@@ -27,61 +27,51 @@ namespace ChessEngine
 
         public override List<string> GetPossibleMove()
         {
-            char[,] boardArr = board.GetBoardTab();
-
             List<string> possibleMoves = new List<string>();
-
-            List<int> ijCoord = board.CoordToIj(pos);
 
             if (color)
             {
-                char nextElem = boardArr[ijCoord[0] -1, ijCoord[1]];
-
-                if (nextElem == ' ')
-                {
-                    possibleMoves.Add(board.IjToCoord(ijCoord[0] - 1, ijCoord[1]));
-
-                    if (firstMove)
-                    {
-                        possibleMoves.Add(board.IjToCoord(ijCoord[0] - 2, ijCoord[1]));
-                    }
-                }
-                
-                if(Char.IsLower(boardArr[ijCoord[0] - 1, ijCoord[1] - 1]))
-                {
-                    possibleMoves.Add(board.IjToCoord(ijCoord[0] - 1, ijCoord[1] - 1));
-                }
-                if(Char.IsLower(boardArr[ijCoord[0] - 1, ijCoord[1] + 1]))
-                {
-                    possibleMoves.Add(board.IjToCoord(ijCoord[0] - 1, ijCoord[1] + 1));
-                }
+                possibleMoves = CheckPath(-1);
             }
             else
             {
-                char nextElem = boardArr[ijCoord[0] + 1, ijCoord[1]];
-
-                if (nextElem == ' ')
-                {
-                    possibleMoves.Add(board.IjToCoord(ijCoord[0] + 1, ijCoord[1]));
-                    
-                    if (firstMove)
-                    {
-                        possibleMoves.Add(board.IjToCoord(ijCoord[0] + 2, ijCoord[1]));
-                    }
-                }
-
-                if (Char.IsUpper(boardArr[ijCoord[0] + 1, ijCoord[1] - 1]))
-                {
-                    possibleMoves.Add(board.IjToCoord(ijCoord[0] + 1, ijCoord[1] - 1));
-                }
-                if (Char.IsUpper(boardArr[ijCoord[0] + 1, ijCoord[1] + 1]))
-                {
-                    possibleMoves.Add(board.IjToCoord(ijCoord[0] + 1, ijCoord[1] + 1));
-                }
+                possibleMoves = CheckPath(1);
 
             }
 
             return possibleMoves;
+        }
+
+        public List<string> CheckPath(int direction)
+        {
+            List<string> pathMoves = new List<string>();
+
+            char[,] boardArr = board.GetBoardTab();
+
+            List<int> ijCoord = board.CoordToIj(pos);
+
+            char nextElem = boardArr[ijCoord[0] + direction, ijCoord[1]];
+
+            if (nextElem == ' ')
+            {
+                pathMoves.Add(board.IjToCoord(ijCoord[0] + direction, ijCoord[1]));
+
+                if (firstMove)
+                {
+                    pathMoves.Add(board.IjToCoord(ijCoord[0] + direction*2, ijCoord[1]));
+                }
+            }
+
+            if (ijCoord[1]-1 >= 0 && board.IsKillable(board.IjToCoord(ijCoord[0]+direction, ijCoord[1]-1),color) == true)
+            {
+                pathMoves.Add(board.IjToCoord(ijCoord[0] + direction, ijCoord[1] - 1));
+            }
+            if (ijCoord[1]+1 < board.GetBoardEdgeLen() && board.IsKillable(board.IjToCoord(ijCoord[0]+direction, ijCoord[1]+1), color) == true)
+            {
+                pathMoves.Add(board.IjToCoord(ijCoord[0] + direction, ijCoord[1] + 1));
+            }
+
+            return pathMoves;
         }
     }
 }

@@ -12,7 +12,14 @@ namespace ChessEngine
 
         public override List<string> GetPossibleMove()
         {
-            return new List<string>();
+            List<string> possibleMove = new List<string>();
+
+            possibleMove.AddRange(GetLineMove(-1,-1));
+            possibleMove.AddRange(GetLineMove(1,-1));
+            possibleMove.AddRange(GetLineMove(1,1));
+            possibleMove.AddRange(GetLineMove(-1,1));
+
+            return possibleMove;
         }
     }
 }

@@ -12,7 +12,15 @@ namespace ChessEngine
 
         public override List<string> GetPossibleMove()
         {
-            return new List<string>();
+            List<string> possibleMoves = new List<string>();
+
+            Bishop fakeBishop = new Bishop(pos, color, board);
+            Rook fakeRook = new Rook(pos,color,board);
+            
+            possibleMoves.AddRange(fakeBishop.GetPossibleMove());
+            possibleMoves.AddRange(fakeRook.GetPossibleMove());
+
+            return possibleMoves;
         }
     }
 }

@@ -8,8 +8,8 @@ namespace ChessEngine
 {
     public class Player
     {
-        private bool color;
-        private Board board;
+        protected bool color;
+        protected Board board;
 
         public Player(bool initColor, Board initBoard)
         {

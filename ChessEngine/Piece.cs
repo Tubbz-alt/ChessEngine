@@ -41,5 +41,43 @@ namespace ChessEngine
         {
             return new List<string>();
         }
+
+        protected List<string> GetLineMove(int vertInc = 0, int horInc = 0)
+        {
+            List<int> IjCoord = board.CoordToIj(pos);
+
+            List<string> lineMove = new List<string>();
+
+            int i, j;
+
+            for (int n = 1; n < board.GetBoardEdgeLen(); n++)
+            {
+                i = IjCoord[0] + n * vertInc;
+                j = IjCoord[1] + n * horInc;
+
+                if (board.InBoard(i, j))
+                {
+                    if (board.IsVoid(i, j))
+                    {
+                        lineMove.Add(board.IjToCoord(i, j));
+                    }
+                    else
+                    {
+                        if (board.IsKillable(board.IjToCoord(i, j), color))
+                        {
+                            lineMove.Add(board.IjToCoord(i, j));
+                        }
+
+                        break;
+                    }
+                }
+                else
+                {
+                    break;
+                }
+            }
+
+            return lineMove;
+        }
     }
 }

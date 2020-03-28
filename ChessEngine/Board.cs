@@ -42,7 +42,7 @@ namespace ChessEngine
             colorTurn = true;
 
             whitePlayer = new Human(true, this);
-            blackPlayer = new Human(false, this);
+            blackPlayer = new AI(false, this);
 
             Thread interfaceThread = new Thread(new ThreadStart(StartInterface));
             interfaceThread.Start();
@@ -165,15 +165,15 @@ namespace ChessEngine
             return possibleMove;
         }
 
-        public List<string> GetAllMove(bool color)
+        public Dictionary<string,List<string>> GetAllMove(bool color)
         {
-            List<string> possibleMove = new List<string>();
+            Dictionary<string, List<string>> possibleMove = new Dictionary<string, List<string>>();
 
             foreach (Piece piece in listPieces)
             {
-                if(piece.GetColor() == color)
+                if(piece.GetColor() == color && piece.GetPossibleMove().Count > 0)
                 {
-                    possibleMove.AddRange(piece.GetPossibleMove());
+                    possibleMove.Add(piece.GetPos(), piece.GetPossibleMove());
                 }
             }
 
@@ -208,8 +208,6 @@ namespace ChessEngine
             {
                 if (piece.GetPos() == pieceCoord)
                 {
-                    piece.SetPos(newCoord);
-
                     List<int> oldPos = CoordToIj(pieceCoord);
                     List<int> newPos = CoordToIj(newCoord);
 
@@ -228,6 +226,7 @@ namespace ChessEngine
                         }
                     }
 
+                    piece.SetPos(newCoord);
                     boardTab[newPos[0], newPos[1]] = pieceLetter;
 
                     break;
@@ -248,6 +247,47 @@ namespace ChessEngine
         public string IjToCoord(int i, int j)
         {
             return coordTab[i,j];
+        }
+
+        public bool InBoard(int i, int j)
+        {
+            int lenBoard = GetBoardEdgeLen();
+
+            if(i<0 || j<0 || i>=lenBoard || j>=lenBoard)
+            {
+                return false;
+            }
+
+            return true;
+        }
+
+        public int GetBoardEdgeLen()
+        {
+            return (int)Math.Sqrt(boardTab.Length);
+        }
+
+        public bool IsKillable(string pieceToKillCoord, bool pieceToMoveColor)
+        {
+            List<int> ijCoord = CoordToIj(pieceToKillCoord);
+
+            char toKill = boardTab[ijCoord[0], ijCoord[1]];
+
+            if((Char.IsUpper(toKill) && pieceToMoveColor == false) || (Char.IsLower(toKill) && pieceToMoveColor == true))
+            {
+                return true;
+            }
+
+            return false;
+        }
+
+        public bool IsVoid(int i, int j)
+        {
+            if(boardTab[i,j] == ' ')
+            {
+                return true;
+            }
+
+            return false;
         }
     }
 }
