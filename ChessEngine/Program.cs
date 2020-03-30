@@ -14,7 +14,7 @@ namespace ChessEngine
         [STAThread]
         static void Main()
         {
-            Board board = new Board();
+            new Board();
         }
     }
 }

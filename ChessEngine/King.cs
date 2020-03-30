@@ -12,7 +12,27 @@ namespace ChessEngine
 
         public override List<string> GetPossibleMove()
         {
-            return new List<string>();
+            possibleMoves = new List<string>();
+
+            List<int> IjCoord = board.CoordToIj(pos);
+
+            for(int i = IjCoord[0]-1; i<=IjCoord[0]+1; i++)
+            {
+                for(int j = IjCoord[1]-1; j<=IjCoord[1]+1; j++)
+                {
+                    if (board.InBoard(i,j))
+                    {
+                        if (board.IsVoid(i, j) || board.IsKillable(board.IjToCoord(i, j), color))
+                        {
+                            possibleMoves.Add(board.IjToCoord(i, j));
+                        }
+                    }  
+                }
+            }
+
+            possibleMoves = base.GetPossibleMove();
+
+            return possibleMoves;
         }
     }
 }

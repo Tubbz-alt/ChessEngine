@@ -14,7 +14,7 @@ namespace ChessEngine
         {
             char[,] boardArr = board.GetBoardTab();
             
-            List<string> possibleMoves = new List<string>();
+            possibleMoves = new List<string>();
 
             List<int> ijCoord = board.CoordToIj(pos);
 
@@ -40,6 +40,8 @@ namespace ChessEngine
                     }
                 }
             }
+
+            possibleMoves = base.GetPossibleMove();
 
             return possibleMoves;
         }

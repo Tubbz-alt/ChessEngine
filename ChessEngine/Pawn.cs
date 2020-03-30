@@ -27,9 +27,7 @@ namespace ChessEngine
 
         public override List<string> GetPossibleMove()
         {
-            List<string> possibleMoves = new List<string>();
-
-            if (color)
+            if(color)
             {
                 possibleMoves = CheckPath(-1);
             }
@@ -38,6 +36,8 @@ namespace ChessEngine
                 possibleMoves = CheckPath(1);
 
             }
+
+            possibleMoves = base.GetPossibleMove();
 
             return possibleMoves;
         }
@@ -56,7 +56,7 @@ namespace ChessEngine
             {
                 pathMoves.Add(board.IjToCoord(ijCoord[0] + direction, ijCoord[1]));
 
-                if (firstMove)
+                if (firstMove && boardArr[ijCoord[0] + direction*2, ijCoord[1]] == ' ')
                 {
                     pathMoves.Add(board.IjToCoord(ijCoord[0] + direction*2, ijCoord[1]));
                 }

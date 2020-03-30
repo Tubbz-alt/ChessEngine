@@ -24,6 +24,8 @@ namespace ChessEngine
 
                 int nbMove = rand.Next(allPossibleMoves[coordPiece].Count);
 
+                Console.WriteLine("{0} to {1}",coordPiece, allPossibleMoves[coordPiece][nbMove]);
+
                 board.SetPieceCoord(coordPiece, allPossibleMoves[coordPiece][nbMove]);
             }
             

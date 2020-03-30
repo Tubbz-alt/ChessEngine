@@ -16,14 +16,16 @@ namespace ChessEngine
 
         public override List<string> GetPossibleMove()
         {
-            List<string> possibleMove = new List<string>();
+            possibleMoves = new List<string>();
 
-            possibleMove.AddRange(GetLineMove(vertInc : -1));
-            possibleMove.AddRange(GetLineMove(vertInc: 1));
-            possibleMove.AddRange(GetLineMove(horInc: -1));
-            possibleMove.AddRange(GetLineMove(horInc: 1));
+            possibleMoves.AddRange(GetLineMove(vertInc : -1));
+            possibleMoves.AddRange(GetLineMove(vertInc: 1));
+            possibleMoves.AddRange(GetLineMove(horInc: -1));
+            possibleMoves.AddRange(GetLineMove(horInc: 1));
 
-            return possibleMove;
+            possibleMoves = base.GetPossibleMove();
+
+            return possibleMoves;
         }
 
         public override void SetPos(string newPos)

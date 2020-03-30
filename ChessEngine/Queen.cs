@@ -12,7 +12,7 @@ namespace ChessEngine
 
         public override List<string> GetPossibleMove()
         {
-            List<string> possibleMoves = new List<string>();
+            possibleMoves = new List<string>();
 
             Bishop fakeBishop = new Bishop(pos, color, board);
             Rook fakeRook = new Rook(pos,color,board);

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading;
@@ -20,7 +21,7 @@ namespace ChessEngine
         // true=white, false=black
         protected bool colorTurn;
 
-        private List<Piece> listPieces;
+        private List<Piece> piecesList;
 
         public Board()
         {
@@ -35,7 +36,6 @@ namespace ChessEngine
 
             InitCoord();
             InitPiece();
-
 
             fen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
 
@@ -68,7 +68,7 @@ namespace ChessEngine
 
         private void InitPiece()
         {
-            listPieces = new List<Piece>();
+            piecesList = new List<Piece>();
             
             int len = (int)Math.Sqrt(boardTab.Length);
 
@@ -79,40 +79,40 @@ namespace ChessEngine
                     switch ((PieceEnum) boardTab[i,j])
                     {
                         case PieceEnum.WhiteKing:
-                            listPieces.Add(new King(coordTab[i,j], true, this));
+                            piecesList.Add(new King(coordTab[i,j], true, this));
                             break;
                         case PieceEnum.WhiteQueen:
-                            listPieces.Add(new Queen(coordTab[i, j], true, this));
+                            piecesList.Add(new Queen(coordTab[i, j], true, this));
                             break;
                         case PieceEnum.WhiteRook:
-                            listPieces.Add(new Rook(coordTab[i, j], true, this));
+                            piecesList.Add(new Rook(coordTab[i, j], true, this));
                             break;
                         case PieceEnum.WhiteKnight:
-                            listPieces.Add(new Knight(coordTab[i, j], true, this));
+                            piecesList.Add(new Knight(coordTab[i, j], true, this));
                             break;
                         case PieceEnum.WhiteBishop:
-                            listPieces.Add(new Bishop(coordTab[i, j], true, this));
+                            piecesList.Add(new Bishop(coordTab[i, j], true, this));
                             break;
                         case PieceEnum.WhitePawn:
-                            listPieces.Add(new Pawn(coordTab[i, j], true, this));
+                            piecesList.Add(new Pawn(coordTab[i, j], true, this));
                             break;
                         case PieceEnum.BlackKing:
-                            listPieces.Add(new King(coordTab[i, j], false, this));
+                            piecesList.Add(new King(coordTab[i, j], false, this));
                             break;
                         case PieceEnum.BlackQueen:
-                            listPieces.Add(new Queen(coordTab[i, j], false, this));
+                            piecesList.Add(new Queen(coordTab[i, j], false, this));
                             break;
                         case PieceEnum.BlackRook:
-                            listPieces.Add(new Rook(coordTab[i, j], false, this));
+                            piecesList.Add(new Rook(coordTab[i, j], false, this));
                             break;
                         case PieceEnum.BlackKnight:
-                            listPieces.Add(new Knight(coordTab[i, j], false, this));
+                            piecesList.Add(new Knight(coordTab[i, j], false, this));
                             break;
                         case PieceEnum.BlackBishop:
-                            listPieces.Add(new Bishop(coordTab[i, j], false, this));
+                            piecesList.Add(new Bishop(coordTab[i, j], false, this));
                             break;
                         case PieceEnum.BlackPawn:
-                            listPieces.Add(new Pawn(coordTab[i, j], false, this));
+                            piecesList.Add(new Pawn(coordTab[i, j], false, this));
                             break;
 
                     }
@@ -124,13 +124,15 @@ namespace ChessEngine
         {
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
-            Application.Run(new Form1(this));
+            Application.Run(new BoardForm(this));
         }
 
         private void StartGame()
         {
-            while(true)
-            {   
+            while(GetAllMove(true).Count>0 && GetAllMove(false).Count>0)
+            {
+                //PrintBoard();
+                
                 if(colorTurn)
                 {
                     whitePlayer.GetNextMove();
@@ -141,6 +143,19 @@ namespace ChessEngine
                     blackPlayer.GetNextMove();
                     colorTurn = true;
                 }
+            }
+
+            if(IsChecked(true))
+            {
+                Console.WriteLine("Black win by checkmate");
+            }
+            else if (IsChecked(false))
+            {
+                Console.WriteLine("White win by checkmate");
+            }
+            else
+            {
+                Console.WriteLine("Draw");
             }
         }
         
@@ -153,7 +168,7 @@ namespace ChessEngine
         {
             List<string> possibleMove = new List<string>();
 
-            foreach(Piece piece in listPieces)
+            foreach(Piece piece in ClonePiecesList(piecesList))
             {
                 if(piece.GetPos() == coord)
                 {
@@ -169,7 +184,7 @@ namespace ChessEngine
         {
             Dictionary<string, List<string>> possibleMove = new Dictionary<string, List<string>>();
 
-            foreach (Piece piece in listPieces)
+            foreach (Piece piece in ClonePiecesList(piecesList))
             {
                 if(piece.GetColor() == color && piece.GetPossibleMove().Count > 0)
                 {
@@ -204,7 +219,7 @@ namespace ChessEngine
 
         public void SetPieceCoord(string pieceCoord, string newCoord)
         {
-            foreach (Piece piece in listPieces)
+            foreach (Piece piece in piecesList)
             {
                 if (piece.GetPos() == pieceCoord)
                 {
@@ -216,11 +231,11 @@ namespace ChessEngine
 
                     if (boardTab[newPos[0], newPos[1]] != ' ')
                     {
-                        foreach (Piece pieceToKill in listPieces)
+                        foreach (Piece pieceToKill in piecesList)
                         {
                             if (pieceToKill.GetPos() == newCoord)
                             {
-                                listPieces.Remove(pieceToKill);
+                                piecesList.Remove(pieceToKill);
                                 break;
                             }
                         }
@@ -236,10 +251,11 @@ namespace ChessEngine
 
         public List<int> CoordToIj(string coord)
         {
-            List<int> ij = new List<int>();
-
-            ij.Add(((int)Math.Sqrt(coordTab.Length) - (coord[1] - '1')) - 1);
-            ij.Add(coord[0] - 'a');
+            List<int> ij = new List<int>
+            {
+                ((int)Math.Sqrt(coordTab.Length) - (coord[1] - '1')) - 1,
+                coord[0] - 'a'
+            };
 
             return ij;
         }
@@ -288,6 +304,80 @@ namespace ChessEngine
             }
 
             return false;
+        }
+
+        public bool IsChecked(bool kingColor)
+        {
+            string kingPos = "";
+
+            foreach(Piece piece in piecesList)
+            {
+                if(piece.GetType() == typeof(King) && piece.GetColor() == kingColor)
+                {
+                    kingPos = piece.GetPos();
+                }
+            }
+
+            foreach (KeyValuePair<string, List<string>> pieceMoves in GetAllMove(!kingColor))
+            {
+                foreach(string move in pieceMoves.Value)
+                {
+                    if(move==kingPos)
+                    {
+                        return true;
+                    }
+                }
+            }
+
+            return false;
+        }
+
+        public List<string> FilterMove(List<string> currentMoves, string pieceCoord, bool color)
+        {
+            List<string> filterMoves = new List<string>(currentMoves);
+
+            char[,] oldBoardTab = (char[,]) boardTab.Clone();
+            List<Piece> oldPiecesList = ClonePiecesList(piecesList);
+                
+            foreach(string move in currentMoves)
+            {
+                SetPieceCoord(pieceCoord, move);
+
+                if(IsChecked(color))
+                {
+                    filterMoves.Remove(move);
+                }
+
+                piecesList = ClonePiecesList(oldPiecesList);
+                boardTab = (char[,])oldBoardTab.Clone();
+            }
+
+            return filterMoves;
+        }
+
+        public List<Piece> ClonePiecesList(List<Piece> piecesListToClone)
+        {
+            List<Piece> newPiecesList = new List<Piece>();
+
+            foreach(Piece piece in piecesListToClone)
+            {
+                newPiecesList.Add((Piece) piece.Clone());
+            }
+
+            return newPiecesList;
+        }
+
+        public void PrintBoard()
+        {
+            for(int i=0; i<GetBoardEdgeLen(); i++)
+            {
+                for(int j=0; j<GetBoardEdgeLen(); j++)
+                {
+                    Console.Write(boardTab[i, j]);
+                }
+                Console.WriteLine();
+            }
+            Console.WriteLine();
         }
     }
 }

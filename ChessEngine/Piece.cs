@@ -6,12 +6,14 @@ using System.Threading.Tasks;
 
 namespace ChessEngine
 {
-    class Piece
+    public class Piece : ICloneable
     {
         protected string pos;
         
         // true=white, false=black
         protected bool color;
+
+        protected List<string> possibleMoves;
 
         protected Board board;
 
@@ -39,7 +41,12 @@ namespace ChessEngine
 
         public virtual List<string> GetPossibleMove() 
         {
-            return new List<string>();
+            if(board.GetColorTurn() == color)
+            {
+                possibleMoves = board.FilterMove(possibleMoves, pos, color);
+            }
+            
+            return possibleMoves;
         }
 
         protected List<string> GetLineMove(int vertInc = 0, int horInc = 0)
@@ -78,6 +85,10 @@ namespace ChessEngine
             }
 
             return lineMove;
+        }
+        public object Clone()
+        {
+            return MemberwiseClone();
         }
     }
 }

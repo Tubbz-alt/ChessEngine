@@ -7,12 +7,13 @@ using System.Drawing.Drawing2D;
 using System.Drawing.Imaging;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
 namespace ChessEngine
 {
-    public partial class Form1 : Form
+    public partial class BoardForm : Form
     {
         private Board board;
 
@@ -32,7 +33,7 @@ namespace ChessEngine
 
         private List<Player> player;
 
-        public Form1(Board initBoard)
+        public BoardForm(Board initBoard)
         {
             InitializeComponent();
 
@@ -115,7 +116,6 @@ namespace ChessEngine
                 }
 
                 piecesImage.Add(piece, ResizeImage(CropImage(sprite, cropx, cropy, pieceSize, pieceSize),boxSize,boxSize));
-
             }     
         }
 
@@ -199,6 +199,7 @@ namespace ChessEngine
                         movesToDisp.Clear();
 
                         Refresh();
+
                     }
                 }
             }
@@ -258,6 +259,10 @@ namespace ChessEngine
                     }
                 }
             }
+        }
+        private void BoardRefresh(object sender, EventArgs e)
+        {
+            Refresh();
         }
     }
 }
