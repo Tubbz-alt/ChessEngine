@@ -19,7 +19,9 @@ namespace ChessEngine
         private Player blackPlayer;
 
         // true=white, false=black
-        protected bool colorTurn;
+        private bool colorTurn;
+
+        private bool isUpdated;
 
         private List<Piece> piecesList;
 
@@ -46,6 +48,8 @@ namespace ChessEngine
 
             Thread interfaceThread = new Thread(new ThreadStart(StartInterface));
             interfaceThread.Start();
+
+            isUpdated = false;
 
             StartGame();
         }
@@ -132,6 +136,7 @@ namespace ChessEngine
             while(GetAllMove(true).Count>0 && GetAllMove(false).Count>0)
             {
                 //PrintBoard();
+                isUpdated = true;
                 
                 if(colorTurn)
                 {
@@ -144,6 +149,8 @@ namespace ChessEngine
                     colorTurn = true;
                 }
             }
+
+            isUpdated = true;
 
             if(IsChecked(true))
             {
@@ -378,6 +385,16 @@ namespace ChessEngine
                 Console.WriteLine();
             }
             Console.WriteLine();
+        }
+
+        public bool IsUpdated()
+        {
+            return isUpdated;
+        }
+
+        public void IsRefreshed()
+        {
+            isUpdated = false;
         }
     }
 }

@@ -33,7 +33,8 @@ namespace ChessEngine
 
         private List<Player> player;
 
-        public BoardForm(Board initBoard)
+        public 
+            BoardForm(Board initBoard)
         {
             InitializeComponent();
 
@@ -198,8 +199,6 @@ namespace ChessEngine
 
                         movesToDisp.Clear();
 
-                        Refresh();
-
                     }
                 }
             }
@@ -262,7 +261,11 @@ namespace ChessEngine
         }
         private void BoardRefresh(object sender, EventArgs e)
         {
-            Refresh();
+            if(board.IsUpdated())
+            {
+                Refresh();
+                board.IsRefreshed();
+            }
         }
     }
 }
