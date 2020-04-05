@@ -265,8 +265,6 @@ namespace ChessEngine
                             newRookPos = IjToCoord(newPos[0], newPos[1] - 1);
                         }
 
-                        Console.WriteLine("Finding rook....");
-
                         foreach (Piece pieceCastling in piecesList)
                         {
                             if (pieceCastling.GetPos() == rookPos)
