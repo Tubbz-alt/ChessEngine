@@ -248,6 +248,41 @@ namespace ChessEngine
                         }
                     }
 
+                    // castling
+                    if (piece.GetType() == typeof(King) && GetDistance(pieceCoord, newCoord) == 2)
+                    {
+                        string rookPos = "";
+                        string newRookPos = "";
+                        
+                        if(newPos[1] < oldPos[1])
+                        {
+                            rookPos = IjToCoord(oldPos[0], 0);
+                            newRookPos = IjToCoord(newPos[0], newPos[1] + 1);
+                        }
+                        else
+                        {
+                            rookPos = IjToCoord(oldPos[0], GetBoardEdgeLen()-1);
+                            newRookPos = IjToCoord(newPos[0], newPos[1] - 1);
+                        }
+
+                        Console.WriteLine("Finding rook....");
+
+                        foreach (Piece pieceCastling in piecesList)
+                        {
+                            if (pieceCastling.GetPos() == rookPos)
+                            {
+                                List<int> rookPosIj = CoordToIj(rookPos);
+                                List<int> newRookPosIj = CoordToIj(newRookPos);
+
+                                pieceCastling.SetPos(newRookPos);
+                                boardTab[newRookPosIj[0], newRookPosIj[1]] = boardTab[rookPosIj[0], rookPosIj[1]];
+                                boardTab[rookPosIj[0], rookPosIj[1]] = ' ';
+
+                                break;
+                            }
+                        }
+                    }
+
                     piece.SetPos(newCoord);
                     boardTab[newPos[0], newPos[1]] = pieceLetter;
 
@@ -395,6 +430,132 @@ namespace ChessEngine
         public void IsRefreshed()
         {
             isUpdated = false;
+        }
+
+        public List<string> ChecksCastling(bool color)
+        {
+            List<string> castlingMoves = new List<string>();
+            King kingPiece = null;
+            List<Rook> rookPieces = new List<Rook>();
+            
+            foreach(Piece piece in piecesList)
+            {
+                if(piece.GetColor() == color)
+                {
+                    if (piece.GetType() == typeof(King))
+                    {
+                        kingPiece = (King)piece;
+                    }
+                    else if (piece.GetType() == typeof(Rook))
+                    {
+                        rookPieces.Add((Rook) piece);
+                    }
+                }
+            }
+
+            if (!(IsChecked(color)) && !(kingPiece.HasBeenMoved()))
+            {
+                List<int> kingPos = CoordToIj(kingPiece.GetPos());
+                Dictionary<string, List<string>> ennemyMoves = GetAllMove(!color);
+
+                bool queenSide = false;
+
+                foreach (Rook rook in rookPieces)
+                {
+                    bool canCastling = true;
+
+                    if (!(rook.HasBeenMoved()))
+                    {
+                        int i = 0;
+                        
+                        if(color)
+                        {
+                            i = GetBoardEdgeLen() - 1;   
+                        }
+
+
+                        List<int> rookPos = CoordToIj(rook.GetPos());
+                        
+
+                        int minj, maxj;
+
+                        if (rookPos[1] < kingPos[1] )
+                        {
+                            minj = rookPos[1] + 1;
+                            maxj = kingPos[1] - 1;
+                            queenSide = true;
+                        }
+                        else
+                        {
+                            minj = kingPos[1] + 1;
+                            maxj = rookPos[1] - 1;
+                            queenSide = false;
+                        }
+
+                        for (int j = minj; j <= maxj; j++)
+                        {
+                            if (boardTab[i,j] == ' ')
+                            { 
+                                if((queenSide && j >= kingPos[1]-2) || (!queenSide))
+                                {
+                                    foreach (KeyValuePair<string, List<string>> pieceMoves in ennemyMoves)
+                                    {
+                                        foreach (string move in pieceMoves.Value)
+                                        {
+                                            if (move == IjToCoord(i,j))
+                                            {
+                                                canCastling = false;
+                                                break;
+                                            }
+                                        }
+                                        if(!canCastling) { break; }
+                                    }
+                                }
+                            }
+                            else 
+                            {
+                                canCastling = false;
+                                break; 
+                            }
+
+                            if (!canCastling)
+                            {
+                                break;
+                            }
+                        }
+                    }
+                    else
+                    {
+                        canCastling = false;
+                    }
+
+                    if(canCastling)
+                    {
+                        char[] kingPosStr = kingPiece.GetPos().ToCharArray();
+                        
+                        if(queenSide)
+                        {
+                            kingPosStr[0] -= (char) 2;
+                        }
+                        else
+                        {
+                            kingPosStr[0] += (char)2;
+                        }
+
+                        castlingMoves.Add(new string(kingPosStr));
+                    }
+                }
+            }
+
+            return castlingMoves;
+        }
+
+        public int GetDistance(string coord1, string coord2)
+        {
+            List<int> src = CoordToIj(coord1);
+            List<int> dst = CoordToIj(coord2);
+
+            return Math.Abs(src[0] - dst[0]) + Math.Abs(src[1] - dst[1]);
         }
     }
 }

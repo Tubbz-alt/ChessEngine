@@ -195,9 +195,14 @@ namespace ChessEngine
                         {
                             board.SetPieceCoord(pieceCoord, moveCoord);
                             human.IncrementMove();
+                            movesToDisp.Clear();
                         }
-
-                        movesToDisp.Clear();
+                        else
+                        {
+                            movesToDisp.Clear();
+                            Refresh();
+                        }
+                        
 
                     }
                 }

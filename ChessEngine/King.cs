@@ -8,7 +8,11 @@ namespace ChessEngine
 {
     class King : Piece
     {
-        public King(string initPos, bool initColor, Board initBoard) : base(initPos, initColor, initBoard) { }
+        private bool isMoved;
+        public King(string initPos, bool initColor, Board initBoard) : base(initPos, initColor, initBoard) 
+        {
+            isMoved = false;
+        }
 
         public override List<string> GetPossibleMove()
         {
@@ -30,9 +34,25 @@ namespace ChessEngine
                 }
             }
 
+            if(board.GetColorTurn() == color)
+            {
+                possibleMoves.AddRange(board.ChecksCastling(color));
+            }
+
             possibleMoves = base.GetPossibleMove();
 
             return possibleMoves;
+        }
+
+        public override void SetPos(string newPos)
+        {
+            if (!isMoved) { isMoved = true; }
+            base.SetPos(newPos);
+        }
+
+        public bool HasBeenMoved()
+        {
+            return isMoved;
         }
     }
 }

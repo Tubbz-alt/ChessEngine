@@ -33,5 +33,10 @@ namespace ChessEngine
             if (!isMoved) { isMoved = true; }
             base.SetPos(newPos);
         }
+
+        public bool HasBeenMoved()
+        {
+            return isMoved;
+        }
     }
 }
