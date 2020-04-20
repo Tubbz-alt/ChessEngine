@@ -135,7 +135,8 @@ namespace ChessEngine
         {
             while(GetAllMove(true).Count>0 && GetAllMove(false).Count>0)
             {
-                //PrintBoard();
+                Console.WriteLine("Before :");
+                PrintBoard();
                 isUpdated = true;
                 
                 if(colorTurn)
@@ -148,6 +149,9 @@ namespace ChessEngine
                     blackPlayer.GetNextMove();
                     colorTurn = true;
                 }
+
+                Console.WriteLine("After :");
+                PrintBoard();
             }
 
             isUpdated = true;
@@ -249,7 +253,7 @@ namespace ChessEngine
                     }
 
                     // castling
-                    if (piece.GetType() == typeof(King) && GetDistance(pieceCoord, newCoord) == 2)
+                    if (piece.GetType() == typeof(King) && GetDistance(pieceCoord, newCoord) == 2 && oldPos[0]==newPos[0])
                     {
                         string rookPos = "";
                         string newRookPos = "";
@@ -451,7 +455,7 @@ namespace ChessEngine
                 }
             }
 
-            if (!(IsChecked(color)) && !(kingPiece.HasBeenMoved()))
+            if (!IsChecked(color) && !kingPiece.HasBeenMoved())
             {
                 List<int> kingPos = CoordToIj(kingPiece.GetPos());
                 Dictionary<string, List<string>> ennemyMoves = GetAllMove(!color);
