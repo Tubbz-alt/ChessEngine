@@ -34,5 +34,10 @@ namespace ChessEngine
                 board.SetPieceCoord(coordPiece, allPossibleMoves[coordPiece][nbMove]);
             }
         }
+
+        public void Minimax()
+        {
+
+        }
     }
 }

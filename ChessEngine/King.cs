@@ -55,5 +55,10 @@ namespace ChessEngine
         {
             return isMoved;
         }
+
+        public void SetCantCastling()
+        {
+            isMoved = true;
+        }
     }
 }

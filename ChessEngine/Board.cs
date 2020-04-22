@@ -36,7 +36,7 @@ namespace ChessEngine
             InitPiece();
 
             baseFen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
-            fen = baseFen;
+            fen = "rnbqkbnr/p2p3p/1p2ppp1/2p5/8/3BPP1N/PPPP2PP/RNBQK2R w Qkq";
 
             LoadBoardWithFen(fen);
 
@@ -743,6 +743,40 @@ namespace ChessEngine
             {
                 colorTurn = false;
             }
+
+            SetCastlingFenInfo(splitFen[2]);
+        }
+
+        private void SetCastlingFenInfo(string castlingInfo)
+        {
+            Tuple<King, List<Rook>> whiteCastlingPiece = GetCastlingPiece(true);
+            Tuple<King, List<Rook>> blackCastlingPiece = GetCastlingPiece(true);
+
+            if(castlingInfo == "-")
+            {
+                whiteCastlingPiece.Item1.SetCantCastling();
+                blackCastlingPiece.Item1.SetCantCastling();
+            }
+            else
+            {
+                if (!castlingInfo.Contains('K'))
+                {
+                    whiteCastlingPiece.Item2.ElementAt(1).SetCantCastling();
+                }
+                if (!castlingInfo.Contains('Q'))
+                {
+                    whiteCastlingPiece.Item2.ElementAt(0).SetCantCastling();
+                }
+                if (!castlingInfo.Contains('k'))
+                {
+                    blackCastlingPiece.Item2.ElementAt(1).SetCantCastling();
+                }
+                if (!castlingInfo.Contains('q'))
+                {
+                    blackCastlingPiece.Item2.ElementAt(0).SetCantCastling();
+                }
+            }
+
         }
 
         private void AddPiece(char letter, string coord)
@@ -787,6 +821,29 @@ namespace ChessEngine
                     break;
 
             }
+        }
+
+        private Tuple<King, List<Rook>> GetCastlingPiece(bool color)
+        {
+            King king = null;
+            List<Rook> rooks = new List<Rook>();
+
+            foreach (Piece piece in piecesList)
+            {
+                if (piece.GetColor() == color)
+                {
+                    if (piece.GetType() == typeof(King))
+                    {
+                        king = (King)piece;
+                    }
+                    else if (piece.GetType() == typeof(Rook))
+                    {
+                        rooks.Add((Rook)piece);
+                    }
+                }
+            }
+
+            return Tuple.Create(king, rooks);
         }
     }
 }
