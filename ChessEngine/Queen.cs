@@ -8,7 +8,10 @@ namespace ChessEngine
 {
     class Queen : Piece
     {
-        public Queen(string initPos, bool initColor, Board initBoard) : base(initPos, initColor, initBoard) { }
+        public Queen(string initPos, bool initColor, Board initBoard) : base(initPos, initColor, initBoard) 
+        {
+            value = 9;
+        }
 
         public override List<string> GetPossibleMove()
         {

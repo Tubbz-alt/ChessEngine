@@ -12,6 +12,7 @@ namespace ChessEngine
         
         public Pawn(string initPos, bool initColor, Board initBoard) : base(initPos, initColor, initBoard) 
         {
+            value = 1;
             firstMove = true;
         }
 

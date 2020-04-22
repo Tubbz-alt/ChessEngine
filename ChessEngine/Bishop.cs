@@ -8,7 +8,10 @@ namespace ChessEngine
 {
     class Bishop : Piece
     {
-        public Bishop(string initPos, bool initColor, Board initBoard) : base(initPos, initColor, initBoard) { }
+        public Bishop(string initPos, bool initColor, Board initBoard) : base(initPos, initColor, initBoard) 
+        {
+            value = 3;
+        }
 
         public override List<string> GetPossibleMove()
         {

@@ -11,6 +11,7 @@ namespace ChessEngine
         private bool isMoved;
         public King(string initPos, bool initColor, Board initBoard) : base(initPos, initColor, initBoard) 
         {
+            value = 999;
             isMoved = false;
         }
 

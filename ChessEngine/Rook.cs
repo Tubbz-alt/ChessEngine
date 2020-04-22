@@ -9,8 +9,10 @@ namespace ChessEngine
     class Rook : Piece
     {
         private bool isMoved;
+
         public Rook(string initPos, bool initColor, Board initBoard) : base(initPos, initColor, initBoard) 
         {
+            value = 5;
             isMoved = false;
         }
 

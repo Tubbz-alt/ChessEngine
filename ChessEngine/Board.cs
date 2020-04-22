@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Globalization;
 using System.Linq;
 using System.Text;
 using System.Threading;
@@ -13,6 +14,8 @@ namespace ChessEngine
     {
         private char[,] boardTab;
         private string[,] coordTab;
+
+        private string baseFen;
         private string fen;
 
         private Player whitePlayer;
@@ -27,19 +30,16 @@ namespace ChessEngine
 
         public Board()
         {
-            boardTab = new char[,] {{'r','n','b','q','k','b','n','r'},
-                                    {'p','p','p','p','p','p','p','p'},
-                                    {' ',' ',' ',' ',' ',' ',' ',' '},
-                                    {' ',' ',' ',' ',' ',' ',' ',' '},
-                                    {' ',' ',' ',' ',' ',' ',' ',' '},
-                                    {' ',' ',' ',' ',' ',' ',' ',' '},
-                                    {'P','P','P','P','P','P','P','P'},
-                                    {'R','N','B','Q','K','B','N','R'}};
-
+            boardTab = new char[8,8];
+            
             InitCoord();
             InitPiece();
 
-            fen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
+            baseFen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
+            fen = baseFen;
+
+            LoadBoardWithFen(fen);
+
 
             colorTurn = true;
 
@@ -80,46 +80,7 @@ namespace ChessEngine
             {
                 for (int j = 0; j < len; j++)
                 {
-                    switch ((PieceEnum) boardTab[i,j])
-                    {
-                        case PieceEnum.WhiteKing:
-                            piecesList.Add(new King(coordTab[i,j], true, this));
-                            break;
-                        case PieceEnum.WhiteQueen:
-                            piecesList.Add(new Queen(coordTab[i, j], true, this));
-                            break;
-                        case PieceEnum.WhiteRook:
-                            piecesList.Add(new Rook(coordTab[i, j], true, this));
-                            break;
-                        case PieceEnum.WhiteKnight:
-                            piecesList.Add(new Knight(coordTab[i, j], true, this));
-                            break;
-                        case PieceEnum.WhiteBishop:
-                            piecesList.Add(new Bishop(coordTab[i, j], true, this));
-                            break;
-                        case PieceEnum.WhitePawn:
-                            piecesList.Add(new Pawn(coordTab[i, j], true, this));
-                            break;
-                        case PieceEnum.BlackKing:
-                            piecesList.Add(new King(coordTab[i, j], false, this));
-                            break;
-                        case PieceEnum.BlackQueen:
-                            piecesList.Add(new Queen(coordTab[i, j], false, this));
-                            break;
-                        case PieceEnum.BlackRook:
-                            piecesList.Add(new Rook(coordTab[i, j], false, this));
-                            break;
-                        case PieceEnum.BlackKnight:
-                            piecesList.Add(new Knight(coordTab[i, j], false, this));
-                            break;
-                        case PieceEnum.BlackBishop:
-                            piecesList.Add(new Bishop(coordTab[i, j], false, this));
-                            break;
-                        case PieceEnum.BlackPawn:
-                            piecesList.Add(new Pawn(coordTab[i, j], false, this));
-                            break;
-
-                    }
+                    AddPiece(boardTab[i, j], coordTab[i, j]);
                 }
             }
         }
@@ -135,8 +96,8 @@ namespace ChessEngine
         {
             while(GetAllMove(true).Count>0 && GetAllMove(false).Count>0)
             {
-                Console.WriteLine("Before :");
-                PrintBoard();
+                //Console.WriteLine("Before :");
+                //PrintBoard();
                 isUpdated = true;
                 
                 if(colorTurn)
@@ -150,8 +111,11 @@ namespace ChessEngine
                     colorTurn = true;
                 }
 
-                Console.WriteLine("After :");
-                PrintBoard();
+
+                UpdateFen();
+                Console.WriteLine(fen);
+                //Console.WriteLine("After :");
+                // PrintBoard();
             }
 
             isUpdated = true;
@@ -285,8 +249,20 @@ namespace ChessEngine
                         }
                     }
 
-                    piece.SetPos(newCoord);
-                    boardTab[newPos[0], newPos[1]] = pieceLetter;
+                    // promotion
+                    if (piece.GetType() == typeof(Pawn) && (newPos[0] == 0 || newPos[0] == GetBoardEdgeLen() - 1))
+                    {
+                        piecesList.Add(new Queen(newCoord, piece.GetColor(), this));
+
+                        boardTab[newPos[0], newPos[1]] = 'Q';
+
+                        piecesList.Remove(piece);
+                    }
+                    else
+                    {
+                        piece.SetPos(newCoord);
+                        boardTab[newPos[0], newPos[1]] = pieceLetter;
+                    }
 
                     break;
                 }
@@ -558,6 +534,259 @@ namespace ChessEngine
             List<int> dst = CoordToIj(coord2);
 
             return Math.Abs(src[0] - dst[0]) + Math.Abs(src[1] - dst[1]);
+        }
+
+        public int GetHeuristicValue()
+        {
+            int value = 0;
+
+            foreach(Piece piece in piecesList)
+            {
+                if (piece.GetColor()) 
+                {
+                    value += piece.GetValue();               
+                }
+                else
+                {
+                    value -= piece.GetValue();
+                }
+            }
+
+            return value;
+        }
+
+        public string GetFen()
+        {
+            return fen;
+        }
+
+        private void UpdateFen()
+        {
+            string newFen = "";
+            int cptVoid = 0;
+
+            for(int i=0; i<GetBoardEdgeLen(); i++)
+            {
+                for(int j=0; j<GetBoardEdgeLen(); j++)
+                {
+                    if(boardTab[i,j] != ' ')
+                    {
+                        if(cptVoid > 0)
+                        {
+                            newFen += cptVoid.ToString();
+                        }
+
+                        cptVoid = 0;
+                        
+                        newFen += boardTab[i, j];
+                    }
+                    else
+                    {
+                        cptVoid++;
+                    }
+                }
+
+                if (cptVoid > 0)
+                {
+                    newFen += cptVoid.ToString();
+                }
+
+                cptVoid = 0;
+
+                newFen += '/';
+            }
+
+            newFen = newFen.Remove(newFen.Length - 1);
+
+            if (colorTurn)
+            {
+                newFen += " w";
+            }
+            else
+            {
+                newFen += " b";
+            }
+
+            string canCastling = "";
+
+            King whiteKing = null;
+            King blackKing = null;
+            List<Rook> whiteRooks = new List<Rook>();
+            List<Rook> blackRooks = new List<Rook>();
+
+            foreach (Piece piece in piecesList)
+            {
+                if (piece.GetType() == typeof(King))
+                {
+                    if (piece.GetColor() == true)
+                    {
+                        whiteKing = (King) piece;
+                    }
+                    else
+                    {
+                        blackKing = (King) piece;
+                    }
+                }
+                else if (piece.GetType() == typeof(Rook))
+                {
+                    if (piece.GetColor() == true)
+                    {
+                        whiteRooks.Add((Rook) piece);
+                    }
+                    else
+                    {
+                        blackRooks.Add((Rook) piece);
+                    }
+                }
+            }
+
+            canCastling += CastlingFen(whiteKing, whiteRooks);
+            canCastling += CastlingFen(blackKing, blackRooks);
+
+            if(canCastling == "")
+            {
+                canCastling = "-";
+            }
+
+            newFen += " " + canCastling;
+
+            fen = newFen;
+        }
+
+        private string CastlingFen(King king, List<Rook> rooks)
+        {
+            string canCstling = "";
+
+            List<int> kingPos = CoordToIj(king.GetPos());
+
+            if (!king.HasBeenMoved())
+            {
+                foreach (Rook rook in rooks)
+                {
+                    if (!rook.HasBeenMoved())
+                    {
+                        List<int> rookPos = CoordToIj(rook.GetPos());
+
+                        if (rookPos[1] > kingPos[1])
+                        {
+                            if (king.GetColor())
+                            {
+                                canCstling += "K";
+                            }
+                            else
+                            {
+                                canCstling += "k";
+                            }
+                        }
+                        else
+                        {
+                            if (king.GetColor())
+                            {
+                                canCstling += "Q";
+                            }
+                            else
+                            {
+                                canCstling += "q";
+                            }
+                        }
+                    }
+                }
+            }
+
+            char[] charArray = canCstling.ToCharArray();
+            Array.Reverse(charArray);
+            return new string(charArray);
+        }
+
+        public void LoadBoardWithFen(string fen)
+        {
+            piecesList.Clear();
+
+            string[] splitFen = fen.Split(' ');
+
+            int i=0;
+            int j=0;
+
+            foreach(string row in splitFen[0].Split('/'))
+            {
+                foreach(char letter in row.ToCharArray())
+                {
+                    if (Char.IsDigit(letter))
+                    {
+                        int nbVoid = (int)(letter - '0');
+
+                        for(int k=j; k<nbVoid+j; k++)
+                        {
+                            boardTab[i, k] = ' ';
+                        }
+
+                        j += nbVoid;
+                    }
+                    else
+                    {
+                        boardTab[i, j] = letter;
+                        AddPiece(letter, coordTab[i, j]);
+                        j++;
+                    }
+                }
+
+                j = 0;
+                
+                i++;
+            }
+
+            if(splitFen[1] == "w")
+            {
+                colorTurn = true;
+            }
+            else
+            {
+                colorTurn = false;
+            }
+        }
+
+        private void AddPiece(char letter, string coord)
+        {
+            switch ((PieceEnum)letter)
+            {
+                case PieceEnum.WhiteKing:
+                    piecesList.Add(new King(coord, true, this));
+                    break;
+                case PieceEnum.WhiteQueen:
+                    piecesList.Add(new Queen(coord, true, this));
+                    break;
+                case PieceEnum.WhiteRook:
+                    piecesList.Add(new Rook(coord, true, this));
+                    break;
+                case PieceEnum.WhiteKnight:
+                    piecesList.Add(new Knight(coord, true, this));
+                    break;
+                case PieceEnum.WhiteBishop:
+                    piecesList.Add(new Bishop(coord, true, this));
+                    break;
+                case PieceEnum.WhitePawn:
+                    piecesList.Add(new Pawn(coord, true, this));
+                    break;
+                case PieceEnum.BlackKing:
+                    piecesList.Add(new King(coord, false, this));
+                    break;
+                case PieceEnum.BlackQueen:
+                    piecesList.Add(new Queen(coord, false, this));
+                    break;
+                case PieceEnum.BlackRook:
+                    piecesList.Add(new Rook(coord, false, this));
+                    break;
+                case PieceEnum.BlackKnight:
+                    piecesList.Add(new Knight(coord, false, this));
+                    break;
+                case PieceEnum.BlackBishop:
+                    piecesList.Add(new Bishop(coord, false, this));
+                    break;
+                case PieceEnum.BlackPawn:
+                    piecesList.Add(new Pawn(coord, false, this));
+                    break;
+
+            }
         }
     }
 }

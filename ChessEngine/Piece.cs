@@ -17,6 +17,8 @@ namespace ChessEngine
 
         protected Board board;
 
+        protected int value;
+
         public Piece(string initPos, bool initColor, Board initBoard)
         {
             pos = initPos;
@@ -37,6 +39,11 @@ namespace ChessEngine
         public bool GetColor()
         {
             return color;
+        }
+
+        public int GetValue()
+        {
+            return value;
         }
 
         public virtual List<string> GetPossibleMove() 

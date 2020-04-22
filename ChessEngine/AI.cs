@@ -12,23 +12,27 @@ namespace ChessEngine
 
         public override void GetNextMove()
         {
-            Dictionary<string,List<string>> allPossibleMoves = board.GetAllMove(color);
+            RandomMove();
+        }
+
+        public void RandomMove()
+        {
+            Dictionary<string, List<string>> allPossibleMoves = board.GetAllMove(color);
             List<string> keyList = new List<string>(allPossibleMoves.Keys);
 
             Random rand = new Random();
-            
-            if(allPossibleMoves.Count > 0)
+
+            if (allPossibleMoves.Count > 0)
             {
                 int nbPiece = rand.Next(allPossibleMoves.Count);
                 string coordPiece = keyList[nbPiece];
 
                 int nbMove = rand.Next(allPossibleMoves[coordPiece].Count);
 
-                Console.WriteLine("{0} to {1}",coordPiece, allPossibleMoves[coordPiece][nbMove]);
+                Console.WriteLine("{0} to {1}", coordPiece, allPossibleMoves[coordPiece][nbMove]);
 
                 board.SetPieceCoord(coordPiece, allPossibleMoves[coordPiece][nbMove]);
             }
-            
         }
     }
 }
