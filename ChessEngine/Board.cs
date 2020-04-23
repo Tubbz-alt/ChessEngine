@@ -36,7 +36,7 @@ namespace ChessEngine
             InitPiece();
 
             baseFen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
-            fen = "rnbqkbnr/p2p3p/1p2ppp1/2p5/8/3BPP1N/PPPP2PP/RNBQK2R w Qkq";
+            fen = baseFen;
 
             LoadBoardWithFen(fen);
 
@@ -98,15 +98,21 @@ namespace ChessEngine
             {
                 //Console.WriteLine("Before :");
                 //PrintBoard();
-                isUpdated = true;
                 
                 if(colorTurn)
                 {
+                    if (whitePlayer.GetType() == typeof(Human))
+                        isUpdated = true;
+
+
                     whitePlayer.GetNextMove();
                     colorTurn = false;
                 }
                 else
                 {
+                    if (blackPlayer.GetType() == typeof(Human))
+                        isUpdated = true;
+
                     blackPlayer.GetNextMove();
                     colorTurn = true;
                 }
@@ -560,7 +566,7 @@ namespace ChessEngine
             return fen;
         }
 
-        private void UpdateFen()
+        public void UpdateFen()
         {
             string newFen = "";
             int cptVoid = 0;
@@ -657,36 +663,39 @@ namespace ChessEngine
         {
             string canCstling = "";
 
-            List<int> kingPos = CoordToIj(king.GetPos());
-
-            if (!king.HasBeenMoved())
+            if(king != null)
             {
-                foreach (Rook rook in rooks)
-                {
-                    if (!rook.HasBeenMoved())
-                    {
-                        List<int> rookPos = CoordToIj(rook.GetPos());
+                List<int> kingPos = CoordToIj(king.GetPos());
 
-                        if (rookPos[1] > kingPos[1])
+                if (!king.HasBeenMoved())
+                {
+                    foreach (Rook rook in rooks)
+                    {
+                        if (!rook.HasBeenMoved())
                         {
-                            if (king.GetColor())
+                            List<int> rookPos = CoordToIj(rook.GetPos());
+
+                            if (rookPos[1] > kingPos[1])
                             {
-                                canCstling += "K";
+                                if (king.GetColor())
+                                {
+                                    canCstling += "K";
+                                }
+                                else
+                                {
+                                    canCstling += "k";
+                                }
                             }
                             else
                             {
-                                canCstling += "k";
-                            }
-                        }
-                        else
-                        {
-                            if (king.GetColor())
-                            {
-                                canCstling += "Q";
-                            }
-                            else
-                            {
-                                canCstling += "q";
+                                if (king.GetColor())
+                                {
+                                    canCstling += "Q";
+                                }
+                                else
+                                {
+                                    canCstling += "q";
+                                }
                             }
                         }
                     }
@@ -744,39 +753,93 @@ namespace ChessEngine
                 colorTurn = false;
             }
 
-            SetCastlingFenInfo(splitFen[2]);
+            SetCastlingFenInfo(splitFen[2],true);
+            SetCastlingFenInfo(splitFen[2], false);
+
+            CheckPawnMove();
         }
 
-        private void SetCastlingFenInfo(string castlingInfo)
+        private void CheckPawnMove()
         {
-            Tuple<King, List<Rook>> whiteCastlingPiece = GetCastlingPiece(true);
-            Tuple<King, List<Rook>> blackCastlingPiece = GetCastlingPiece(true);
-
-            if(castlingInfo == "-")
+            foreach(Piece piece in piecesList)
             {
-                whiteCastlingPiece.Item1.SetCantCastling();
-                blackCastlingPiece.Item1.SetCantCastling();
+                if(piece.GetType() == typeof(Pawn))
+                {
+                    Pawn pawn = (Pawn)piece;
+                    
+                    List<int> pawnPos = CoordToIj(piece.GetPos());
+                    
+                    if(piece.GetColor() && pawnPos[0] < GetBoardEdgeLen() - 2)
+                    {
+                        pawn.IsMoved();
+                    }
+                    if (!piece.GetColor() && pawnPos[0] > 1)
+                    {
+                        pawn.IsMoved();
+                    }
+                }
+            }
+        }
+
+        private void SetCastlingFenInfo(string castlingInfo, bool color)
+        {
+            Tuple<King, List<Rook>> castlingPiece = GetCastlingPiece(color);
+
+            if(castlingPiece.Item1 != null)
+            {
+                List<int> kingPos = CoordToIj(castlingPiece.Item1.GetPos());
+
+                if(castlingInfo == "-" || (color && kingPos[0] != GetBoardEdgeLen() - 1) || (!color && kingPos[0] != 0) || kingPos[1] != 4)
+                {
+                    castlingPiece.Item1.SetCantCastling();
+                }
+            }
+
+            SetRookCastling(castlingInfo, castlingPiece.Item2, color);
+        }
+
+        private void SetRookCastling(string castlingInfo, List<Rook> rooks, bool color)
+        {
+            Rook kingSideRook = null;
+            Rook queenSideRook = null;
+
+            foreach (Rook rook in rooks)
+            {
+                List<int> rookPos = CoordToIj(rook.GetPos());
+
+                if(rookPos[1] < GetBoardEdgeLen() / 2)
+                {
+                    queenSideRook = rook;
+                }
+                else
+                {
+                    kingSideRook = rook;
+                }
+            }
+            
+            if (color)
+            {
+                if (!castlingInfo.Contains('K') && kingSideRook != null)
+                {
+                   kingSideRook.SetCantCastling();
+                }
+                if (!castlingInfo.Contains('Q') && queenSideRook != null)
+                {
+                   queenSideRook.SetCantCastling();
+                }
+
             }
             else
             {
-                if (!castlingInfo.Contains('K'))
+                if (!castlingInfo.Contains('k') && kingSideRook != null)
                 {
-                    whiteCastlingPiece.Item2.ElementAt(1).SetCantCastling();
+                    kingSideRook.SetCantCastling();
                 }
-                if (!castlingInfo.Contains('Q'))
+                if (!castlingInfo.Contains('q') && queenSideRook != null)
                 {
-                    whiteCastlingPiece.Item2.ElementAt(0).SetCantCastling();
-                }
-                if (!castlingInfo.Contains('k'))
-                {
-                    blackCastlingPiece.Item2.ElementAt(1).SetCantCastling();
-                }
-                if (!castlingInfo.Contains('q'))
-                {
-                    blackCastlingPiece.Item2.ElementAt(0).SetCantCastling();
+                    queenSideRook.SetCantCastling();
                 }
             }
-
         }
 
         private void AddPiece(char letter, string coord)

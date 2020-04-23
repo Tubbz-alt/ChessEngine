@@ -4,15 +4,15 @@ namespace ChessEngine
 {
     class TreeNode<T>
     {
-        List<TreeNode<T>> Children = new List<TreeNode<T>>();
+        public List<TreeNode<T>> Children = new List<TreeNode<T>>();
 
-        T node { get; set; }
-        string edge { get; set; }   
+        public T Value { get; set; }
+        public string Edge { get; set; }   
 
         public TreeNode(T nodeValue, string edgeValue)
         {
-            node = nodeValue;
-            edge = edgeValue;
+            Value = nodeValue;
+            Edge = edgeValue;
         }
 
         public TreeNode<T> AddChild(T nodeValue, string edgeValue)

@@ -17,6 +17,8 @@ namespace ChessEngine
     {
         private Board board;
 
+        private char[,] lastBoardArr;
+
         private Size boardSize;
         private int nbBoxEdge;
         private int boxSize;
@@ -39,6 +41,7 @@ namespace ChessEngine
             InitializeComponent();
 
             board = initBoard;
+            lastBoardArr = (char [,]) board.GetBoardTab().Clone();
 
             char[,] boardTab = board.GetBoardTab();
 
@@ -194,16 +197,16 @@ namespace ChessEngine
                         if (movesToDisp.FindIndex(board.IjToCoord(posi, posj).Contains) >= 0)
                         {
                             board.SetPieceCoord(pieceCoord, moveCoord);
+                            lastBoardArr = (char[,])board.GetBoardTab().Clone();
                             human.IncrementMove();
                             movesToDisp.Clear();
                         }
                         else
                         {
                             movesToDisp.Clear();
-                            Refresh();
                         }
-                        
 
+                        Refresh();
                     }
                 }
             }
@@ -211,7 +214,7 @@ namespace ChessEngine
 
         private void BoardPaint(object sender, PaintEventArgs e)
         {
-            char[,] boardTab = board.GetBoardTab();
+            char[,] boardTab = lastBoardArr;
 
             Graphics g = e.Graphics;
            
@@ -268,6 +271,7 @@ namespace ChessEngine
         {
             if(board.IsUpdated())
             {
+                lastBoardArr = (char[,])board.GetBoardTab().Clone();
                 Refresh();
                 board.IsRefreshed();
             }

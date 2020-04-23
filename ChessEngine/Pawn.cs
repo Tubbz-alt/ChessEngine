@@ -74,5 +74,10 @@ namespace ChessEngine
 
             return pathMoves;
         }
+
+        public void IsMoved()
+        {
+            firstMove = false;
+        }
     }
 }
